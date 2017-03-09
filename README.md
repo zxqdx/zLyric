@@ -1,0 +1,2 @@
+# zLyric
+Lyric Animation Generator
