@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>zxqdx/zLyric: Lyric Animation Generator</title>
+    <script src="lib/jquery-3.1.1.min.js"></script>
+    <script src="lib/jquery.fittext.js"></script>
+    <script src="lib/jquery.lettering.js"></script>
+    <script src="lib/jquery.textillate.js"></script>
+    <link rel="stylesheet" href="asset/global.css" />
+    <link rel="stylesheet" href="lib/animate.css" />
+  </head>
+  <body>
+    <select id="file-type">
+        <option value="netease">云音乐</option>
+    </select>
+    <input type="file" id="files" name="files[]" multiple />
+    <output id="list"></output>
+
+    <script>
+      function handleFileSelect(evt) {
+        var files = evt.target.files; // FileList object
+
+        // files is a FileList of File objects. List some properties.
+        var output = [];
+        for (var i = 0, f; f = files[i]; i++) {
+          output.push('<li><strong>', escape(f.name), '</strong> (', f.type || 'n/a', ') - ',
+                      f.size, ' bytes, last modified: ',
+                      f.lastModifiedDate ? f.lastModifiedDate.toLocaleDateString() : 'n/a',
+                      '</li>');
+        }
+        document.getElementById('list').innerHTML = '<ul>' + output.join('') + '</ul>';
+      }
+
+      document.getElementById('files').addEventListener('change', handleFileSelect, false);
+    </script>
+      
+    <div id="stage">Stage</div>
+  </body>
+</html>
