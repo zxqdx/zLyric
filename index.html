@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="asset/global.css" />
   <link rel="stylesheet" href="lib/animate.css" />
 
+  <script src="asset/player.js"></script>
   <script src="asset/parser.js"></script>
   <script src="asset/parser_netease.js"></script>
 </head>
@@ -22,6 +23,8 @@
   </select>
   <input type="file" id="files" name="files[]" multiple />
   <output id="list"></output>
+  <br>
+  <button id="btn-play" disabled>播放</button>
 
   <script>
     function handleFileSelect(evt) {
@@ -30,21 +33,32 @@
       // files is a FileList of File objects. List some properties.
       var output = [];
       for (var i = 0, f; f = files[i]; i++) {
+        reader.onload = function(e) {
+          var fileText = e.target.result;
+          var selectedParser = $('#file-type').val();
+          Player.setCurrent(Parser.parsers[selectedParser].parse(fileText));
+          $('#btn-play').prop('disabled', false);
+        }
+        $('#btn-play').prop('disabled', true);
+        reader.readAsText(f);
         output.push('<li><strong>', escape(f.name), '</strong> (', f.type || 'n/a', ') - ',
           f.size, ' bytes, last modified: ',
           f.lastModifiedDate ? f.lastModifiedDate.toLocaleDateString() : 'n/a',
           '</li>');
-        var fileText = reader.readAsText(f);
-
         break;
       }
       document.getElementById('list').innerHTML = '<ul>' + output.join('') + '</ul>';
     }
-
     document.getElementById('files').addEventListener('change', handleFileSelect, false);
+  $(document).ready(() => {
+    $('#stage').css('background', Player.background);
+  });  
   </script>
 
-  <div id="stage">Stage</div>
+  <div id="stage">
+    <div id="stage-lyric"></div>
+    <div id="stage-tlyric">翻译</div>
+  </div>
 </body>
 
 </html>
