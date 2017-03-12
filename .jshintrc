@@ -1,6 +1,8 @@
 {
   "esversion": 6,
+  "browser": true,
   "globals": {
-    "Parser": true
+    "Parser": true,
+    "$": true
   }
 }

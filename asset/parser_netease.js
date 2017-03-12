@@ -8,12 +8,16 @@ Parser.parsers.netease = {
   parse: function (raw) {
     var rawJson = JSON.parse(raw);
     var json = {
-      addInfo: [
-        "翻译：" + rawJson.transUser.nickname,
-        "歌词：" + rawJson.lyricUser.nickname
-      ]
+      addInfo: []
     };
-    json.lyric = !(rawJson.hasOwnProperty("lrc")) ? false :
+    if (rawJson.hasOwnProperty("transUser")) {
+      json.addInfo.push("歌词：" + rawJson.lyricUser.nickname);
+    }
+    if (rawJson.hasOwnProperty("transUser")) {
+      json.addInfo.push("翻译：" + rawJson.transUser.nickname);
+    }
+    
+    json.lyric = !(rawJson.hasOwnProperty("lrc") && rawJson.lrc.lyric) ? false :
       rawJson.lrc.lyric.split("\n").map(line => {
         var re = /^\[(\d+):(\d+)\.(\d+)\](.*)$/g;
         var match = re.exec(line);
@@ -32,8 +36,10 @@ Parser.parsers.netease = {
         return null;
       }).filter(line => {
         return line !== null;
+      }).sort((l1, l2) => {
+        return l1.time - l2.time;
       });
-    json.tlyric = !(rawJson.hasOwnProperty("tlyric")) ? false :
+    json.tlyric = !(rawJson.hasOwnProperty("tlyric") && rawJson.tlyric.lyric) ? false :
       rawJson.tlyric.lyric.split("\n").map(line => {
         var re = /^\[(\d+):(\d+)\.(\d+)\](.*)$/g;
         var match = re.exec(line);
@@ -52,6 +58,8 @@ Parser.parsers.netease = {
         return null;
       }).filter(line => {
         return line !== null;
+      }).sort((l1, l2) => {
+        return l1.time - l2.time;
       });
     return json;
   }
