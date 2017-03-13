@@ -39,7 +39,7 @@ Parser.parsers.netease = {
       }).sort((l1, l2) => {
         return l1.time - l2.time;
       });
-    json.tlyric = !(rawJson.hasOwnProperty("tlyric") && rawJson.tlyric.lyric) ? false :
+    json.tLyric = !(rawJson.hasOwnProperty("tlyric") && rawJson.tlyric.lyric) ? false :
       rawJson.tlyric.lyric.split("\n").map(line => {
         var re = /^\[(\d+):(\d+)\.(\d+)\](.*)$/g;
         var match = re.exec(line);

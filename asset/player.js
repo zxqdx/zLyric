@@ -21,7 +21,7 @@ var Player = Player || {
     this.index = {};
     this.constant.SUPPORTED_LYRIC_TYPES.forEach(TYPE => {
       this.animation.index[TYPE] = -1;
-      $('#stage span#' + TYPE).html('');
+      $('#stage div#stage-' + TYPE.toLowerCase()).html('');
     }, this);
     this.animation.time = 0;
     this.animation.lock = false;
@@ -88,6 +88,13 @@ var Player = Player || {
         });
         currentInfoIndex++;
       }
+      var gapTime = this.current.lyric[i].time + this.constant.ADD_INFO_DURATION * j;
+      if (gapTime < this.current.lyric[i + k].time) {
+        rLyric.push({
+          content: '',
+          time: gapTime
+        });
+      }
       i = k - 1;
     }
     if (rLyric[0].time === 0 && !(rLyric[0].content)) {
@@ -99,8 +106,7 @@ var Player = Player || {
     this.reset();
 
     // TODO: Starts animation.
-    return;
-    this.interval = window.setInterval(() => {
+    this.animation.intervalId = window.setInterval(() => {
       this.animation.time += this.constant.INTERNAL_INTERVAL;
       if (this.animation.lock) {
         return;
@@ -111,7 +117,7 @@ var Player = Player || {
         let currentIndex = this.animation.index[TYPE];
         let nextIndex = currentIndex + 1;
         let current = this.current[TYPE];
-        while (nextIndex < current.length && current[nextIndex].time <= this.currentTime) {
+        while (nextIndex < current.length && current[nextIndex].time <= this.animation.time) {
           nextIndex++;
         }
         nextIndex--;
@@ -120,7 +126,12 @@ var Player = Player || {
           return;
         }
         
+        let currentLyric = current[nextIndex].content;
+        let currentDuration = (nextIndex === current.length - 1) ?
+            this.constant.LYRIC_LAST_LINE_DURATION :
+            current[nextIndex + 1].time - current[nextIndex].time;
         
+        $('#stage div#stage-' + TYPE.toLowerCase()).html(currentLyric + "|" + currentDuration);
       }, this);
 
       this.animation.lock = false;
