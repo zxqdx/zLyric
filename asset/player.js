@@ -17,6 +17,22 @@ var Player = Player || {
     /* Supported lyric types */
     SUPPORTED_LYRIC_TYPES: ['rLyric', 'tLyric'],
   },
+  calcFadeInDuration(lyricDuration) {
+    var result = 0;
+    if (lyricDuration < 1000) {
+      result = lyricDuration * 0.1 + 10;
+    } else if (lyricDuration < 3000) {
+      result = 300;
+    } else if (lyricDuration < 10000) {
+      result = lyricDuration * 0.1;
+    } else {
+      result = 1000;
+    }
+    return Math.floor(result);
+  },
+  calcFadeOutDuration(lyricDuration) {
+    return Math.floor(this.calcFadeInDuration(lyricDuration) / 2);
+  },
   init() {
     this.index = {};
     this.constant.SUPPORTED_LYRIC_TYPES.forEach(TYPE => {
@@ -114,6 +130,8 @@ var Player = Player || {
       this.animation.lock = true;
       
       this.constant.SUPPORTED_LYRIC_TYPES.forEach(TYPE => {
+        let currentStage = '#stage div#stage-' + TYPE.toLowerCase();
+        
         let currentIndex = this.animation.index[TYPE];
         let nextIndex = currentIndex + 1;
         let current = this.current[TYPE];
@@ -126,15 +144,24 @@ var Player = Player || {
           return;
         }
         
-        let currentLyric = current[nextIndex].content;
+        let currentLyric = current[nextIndex].content ? current[nextIndex].content : "&nbsp;";
         let currentDuration = (nextIndex === current.length - 1) ?
             this.constant.LYRIC_LAST_LINE_DURATION :
             current[nextIndex + 1].time - current[nextIndex].time;
+        let currentFadeIn = this.calcFadeInDuration(currentDuration);
+        let currentFadeOut = this.calcFadeOutDuration(currentDuration);
         
-        $('#stage div#stage-' + TYPE.toLowerCase()).html(currentLyric + "|" + currentDuration);
+        $(currentStage).clearQueue();
+        $(currentStage).css('opacity', 0);
+        $(currentStage).html(currentLyric);
+        $(currentStage).animate({opacity: 1}, currentFadeIn, "swing");
+        window.setTimeout(() => {
+          $(currentStage).animate({opacity: 0}, currentFadeOut, "swing", () => {
+            this.animation.index[TYPE] = nextIndex;
+            this.animation.lock = false;
+          });
+        }, currentDuration - currentFadeOut);
       }, this);
-
-      this.animation.lock = false;
     }, this.constant.INTERNAL_INTERVAL);
   },
   setCurrent(json) {
