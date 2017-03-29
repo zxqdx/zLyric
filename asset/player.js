@@ -4,7 +4,7 @@ var Player = Player || {
   animation: {
     time: 0,
     index: {},
-    lock: false,
+    lock: {},
     intervalId: -1
   },
   constant: {
@@ -37,10 +37,10 @@ var Player = Player || {
     this.index = {};
     this.constant.SUPPORTED_LYRIC_TYPES.forEach(TYPE => {
       this.animation.index[TYPE] = -1;
-      $('#stage div#stage-' + TYPE.toLowerCase()).html('');
+      this.animation.lock[TYPE] = false;
+      $('#stage div#stage-' + TYPE.toLowerCase()).html('&nbsp;');
     }, this);
     this.animation.time = 0;
-    this.animation.lock = false;
   },
   reset() {
     this.stop();
@@ -70,7 +70,9 @@ var Player = Player || {
     var currentInfoIndex = 0;
     var rLyric = [];
     for (var i = 0, len = this.current.lyric.length; i < len; i++) {
-      rLyric.push(this.current.lyric[i]);
+      if (this.current.lyric[i].content) {
+        rLyric.push(this.current.lyric[i]);
+      }
       // Adds carryover info to the end of lyric.
       if (i == len - 1) {
         var currentTime = this.current.lyric[i].time + this.constant.LYRIC_LAST_LINE_DURATION;
@@ -92,7 +94,7 @@ var Player = Player || {
       while (!(this.current.lyric[k].content)) { // Combines consecutive empty lyrics.
         k++;
       }
-      var duration = this.current.lyric[i + k].time - this.current.lyric[i].time;
+      var duration = this.current.lyric[k].time - this.current.lyric[i].time;
       var infoCount = Math.floor(duration / this.constant.ADD_INFO_DURATION);
       for (var j = 0; j < infoCount; j++) {
         if (currentInfoIndex >= totalInfoCount) {
@@ -105,7 +107,7 @@ var Player = Player || {
         currentInfoIndex++;
       }
       var gapTime = this.current.lyric[i].time + this.constant.ADD_INFO_DURATION * j;
-      if (gapTime < this.current.lyric[i + k].time) {
+      if (gapTime < this.current.lyric[k].time) {
         rLyric.push({
           content: '',
           time: gapTime
@@ -121,15 +123,14 @@ var Player = Player || {
     // Resets this.
     this.reset();
 
-    // TODO: Starts animation.
+    // DONE: Starts animation.
     this.animation.intervalId = window.setInterval(() => {
       this.animation.time += this.constant.INTERNAL_INTERVAL;
-      if (this.animation.lock) {
-        return;
-      }
-      this.animation.lock = true;
       
       this.constant.SUPPORTED_LYRIC_TYPES.forEach(TYPE => {
+        if (this.animation.lock[TYPE]) {
+          return;
+        }
         let currentStage = '#stage div#stage-' + TYPE.toLowerCase();
         
         let currentIndex = this.animation.index[TYPE];
@@ -144,6 +145,7 @@ var Player = Player || {
           return;
         }
         
+        this.animation.lock[TYPE] = true;
         let currentLyric = current[nextIndex].content ? current[nextIndex].content : "&nbsp;";
         let currentDuration = (nextIndex === current.length - 1) ?
             this.constant.LYRIC_LAST_LINE_DURATION :
@@ -151,14 +153,14 @@ var Player = Player || {
         let currentFadeIn = this.calcFadeInDuration(currentDuration);
         let currentFadeOut = this.calcFadeOutDuration(currentDuration);
         
-        $(currentStage).clearQueue();
+//        $(currentStage).clearQueue();
         $(currentStage).css('opacity', 0);
         $(currentStage).html(currentLyric);
-        $(currentStage).animate({opacity: 1}, currentFadeIn, "swing");
+        $(currentStage).animate({opacity: 1}, currentFadeIn);
         window.setTimeout(() => {
-          $(currentStage).animate({opacity: 0}, currentFadeOut, "swing", () => {
+          $(currentStage).animate({opacity: 0}, currentFadeOut, () => {
             this.animation.index[TYPE] = nextIndex;
-            this.animation.lock = false;
+            this.animation.lock[TYPE] = false;
           });
         }, currentDuration - currentFadeOut);
       }, this);
