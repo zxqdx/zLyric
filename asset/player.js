@@ -9,7 +9,7 @@ var Player = Player || {
   },
   constant: {
     /* Controls the internal refresh rate */
-    INTERNAL_INTERVAL: 100,
+    INTERNAL_INTERVAL: 10,
     /* Controls the duration of additional info */
     ADD_INFO_DURATION: 2000,
     /* Estimation of the duration of last line of lyric */
@@ -31,7 +31,7 @@ var Player = Player || {
     return Math.floor(result);
   },
   calcFadeOutDuration(lyricDuration) {
-    return Math.floor(this.calcFadeInDuration(lyricDuration) / 2);
+    return Math.ceil(this.calcFadeInDuration(lyricDuration) / 2);
   },
   init() {
     this.index = {};
@@ -58,6 +58,12 @@ var Player = Player || {
     }
 
     // Initializes lyric.
+    if (!this.current.hasOwnProperty("lyric")) {
+      this.current.lyric = [{
+        time: 100000,
+        content: ''
+      }];
+    }
     if (this.current.lyric[0].time > 0) {
       this.current.lyric.unshift({
         time: 0,
@@ -90,8 +96,8 @@ var Player = Player || {
       if (this.current.lyric[i].content) {
         continue;
       }
-      var k = i + 1;
-      while (!(this.current.lyric[k].content)) { // Combines consecutive empty lyrics.
+      var k = i;
+      while ((k < len - 1) && !(this.current.lyric[k].content)) { // Combines consecutive empty lyrics.
         k++;
       }
       var duration = this.current.lyric[k].time - this.current.lyric[i].time;
@@ -128,6 +134,9 @@ var Player = Player || {
       this.animation.time += this.constant.INTERNAL_INTERVAL;
       
       this.constant.SUPPORTED_LYRIC_TYPES.forEach(TYPE => {
+        if (!this.current.hasOwnProperty(TYPE)) {
+          return;
+        }
         if (this.animation.lock[TYPE]) {
           return;
         }
@@ -153,7 +162,7 @@ var Player = Player || {
         let currentFadeIn = this.calcFadeInDuration(currentDuration);
         let currentFadeOut = this.calcFadeOutDuration(currentDuration);
         
-//        $(currentStage).clearQueue();
+        $(currentStage).clearQueue();
         $(currentStage).css('opacity', 0);
         $(currentStage).html(currentLyric);
         $(currentStage).animate({opacity: 1}, currentFadeIn);

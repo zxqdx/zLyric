@@ -2,7 +2,7 @@ var Parser = Parser || {
   parsers: {}
 };
 
-Parser.parsers.netease = {
+Parser.parsers.default = {
   name: "default",
   version: "0.0.1",
   parse: function (raw) {
